@@ -36,64 +36,21 @@ public class OrderItemService {
         this.orderRepository = orderRepository;
     }
 
-    public ResponseEntity<?> creteOrderItem(OrderItemRequestDTO dto) {
-        // validate if exist customer
-        var userResponse = userClient.findUserByEmail(dto.getCustomerEmail());
-        if (!userResponse.getStatusCode().is2xxSuccessful() || userResponse.getBody() == null) {
-            throw new OrderItemException("User with email " + dto.getCustomerEmail() + " does not exist.");
-        }
-        List<OrderItem> orderItems = new ArrayList<>();
-        for (ProductRequest product : dto.getProducts()) {
-            // check if exit productId
-            ResponseEntity<ProductDTO> productResponse = productClient.findById(product.getProductId());
-            if (!productResponse.getStatusCode().is2xxSuccessful() || productResponse.getBody() == null) {
-                throw new OrderItemException("Product with ID " + product.getProductId() +"does not exist.");
-            }
-            // check stock
-            Boolean isAvailable = productClient.isProductAvailable(product.getProductId(), product.getQuantity());
-            if (!isAvailable) {
-                throw new OrderItemException("Product with ID " + product.getProductId() + " is not available in the requested quantity.");
-            }
+    public OrderItem saveOrderItem(Long orderId, OrderItem orderItem) {
+        // Buscar la orden asociada
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
-            // sub quantity of product
-            ResponseEntity<?> subQuantityResponse = productClient.subQuantity(product.getProductId(), product.getQuantity());
-            if (!subQuantityResponse.getStatusCode().is2xxSuccessful() || subQuantityResponse.getBody() == null) {
-                throw new OrderItemException("Not enough quantity for product with ID " + product.getProductId());
-            }
+        // Asignar la orden al OrderItem
+        orderItem.setOrder(order);
 
-            // create order item
-            OrderItem orderItem = new OrderItem();
-            orderItem.setProductId(product.getProductId());
-            orderItem.setUserId(userResponse.getBody().getId());
-            orderItem.setQuantity(product.getQuantity());
-            orderItem.setPrice(productResponse.getBody().getPrice() * product.getQuantity());
-            orderItems.add(orderItem);
-            // save orderItems
-            orderItemRespository.save(orderItem);
-        }
-
-        // create order
-        Order order = new Order();
-        Long userId=userResponse.getBody().getId();
-        order.setUserId(userId);
-        order.setOrderDate(LocalDateTime.now());
-        order.setOrderItems(orderItems);
-        // calculate total price
-        double totalPrice = calculateTotalPrice(orderItems);
-        order.setTotalAmount(totalPrice);
-        // save order item
-        Order savedOrder = orderRepository.save(order);
-        return ResponseEntity.ok().body(savedOrder);
+        // Guardar OrderItem
+        return orderItemRespository.save(orderItem);
     }
 
 
-    public double calculateTotalPrice(List<OrderItem> orderItems) {
-        double totalPrice = 0.0;
-        for (OrderItem item : orderItems) {
-            totalPrice+=item.getPrice()* item.getQuantity();
-        }
-        return totalPrice;
-    }
+
+
 
 
     public ResponseEntity<OrderItem> getOrderItemById(Long id) {
@@ -114,4 +71,6 @@ public class OrderItemService {
             throw new OrderItemException("Order item not found with id: " + id);
 
     }
+
+
 }

@@ -1,5 +1,6 @@
 package com.orderService.orderService.exception;
 
+import com.orderService.orderService.exception.customException.OrderException;
 import com.orderService.orderService.exception.customException.OrderItemException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
@@ -30,6 +31,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(OrderItemException.class)
     public ResponseEntity<?> handleOrderItemException(OrderItemException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(OrderException.class)
+    public ResponseEntity<?> handleOrderException(OrderException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
