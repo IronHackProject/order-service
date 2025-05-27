@@ -93,16 +93,34 @@ public class OrderItemService {
     }
 
     public ResponseEntity<?> updateOrderItem(Long id, UpdateOrderItemRequestDTO dto) {
-        Optional<OrderItem> orderItem = orderItemRespository.findById(id);
-        if (orderItem.isPresent()) {
-            orderItem.get().setProductId(dto.getProductId());
-            orderItem.get().setQuantity(dto.getQuantity());
-            orderItemRespository.save(orderItem.get());
-            return ResponseEntity.ok("Order item updated successfully");
+        OrderItem orderItem = orderItemRespository.findById(id)
+                .orElseThrow(() -> new OrderItemException("Order item not found with id: " + id));
+
+        // Validar que el producto exista
+        var productResponse = productClient.findById(dto.getProductId());
+        if (!productResponse.getStatusCode().is2xxSuccessful() || productResponse.getBody() == null) {
+            throw new OrderItemException("Product with id " + dto.getProductId() + " does not exist.");
         }
 
-        throw new OrderItemException("Order item not found with id: " + id);
+        // Recalcular total
+        double newTotalPrice = productResponse.getBody().getPrice() * dto.getQuantity();
 
+        orderItem.setProductId(dto.getProductId());
+        orderItem.setQuantity(dto.getQuantity());
+        orderItem.setTotalPrice(newTotalPrice);
+
+        // Guardar cambios
+        orderItemRespository.save(orderItem);
+
+        // Recalcular total de la orden
+        Order order = orderItem.getOrder();
+        double updatedOrderTotal = order.getOrderItems().stream()
+                .mapToDouble(OrderItem::getTotalPrice)
+                .sum();
+        order.setTotalAmount(updatedOrderTotal);
+        orderRepository.save(order);
+
+        return ResponseEntity.ok("Order item updated successfully");
     }
 
 
