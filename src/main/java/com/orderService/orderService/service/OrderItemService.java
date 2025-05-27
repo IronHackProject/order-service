@@ -3,12 +3,17 @@ package com.orderService.orderService.service;
 import com.orderService.orderService.client.ProductClient;
 import com.orderService.orderService.client.UserClient;
 import com.orderService.orderService.dto.OrderItemRequestDTO;
+import com.orderService.orderService.dto.Product.ProductDTO;
 import com.orderService.orderService.dto.ProductRequest;
+import com.orderService.orderService.dto.User.UserDTO;
 import com.orderService.orderService.exception.customException.OrderItemException;
 import com.orderService.orderService.model.OrderItem;
 import com.orderService.orderService.repository.OrderItemRespository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class OrderItemService {
@@ -28,20 +33,26 @@ public class OrderItemService {
         if (!userResponse.getStatusCode().is2xxSuccessful() || userResponse.getBody() == null) {
             throw new OrderItemException("User with email " + dto.getCustomerEmail() + " does not exist.");
         }
+        List<OrderItem> orderItems = new ArrayList<>();
         for (ProductRequest product : dto.getProducts()) {
             // check if exit productId
-            ResponseEntity<?> productResponse = productClient.findById(product.getProductId());
+            ResponseEntity<ProductDTO> productResponse = productClient.findById(product.getProductId());
             if (!productResponse.getStatusCode().is2xxSuccessful() || productResponse.getBody() == null) {
                 throw new OrderItemException("Product with ID " + product.getProductId() +"does not exist.");
             }
-            // check if product quantity is more than zero, vamos a comprobar que hay cantidad suficiente en el stock
+            // check stock
+
+
+            // sub quantity of product
             ResponseEntity<?> subQuantityResponse = productClient.subQuantity(product.getProductId(), product.getQuantity());
             if (!subQuantityResponse.getStatusCode().is2xxSuccessful() || subQuantityResponse.getBody() == null) {
                 throw new OrderItemException("Not enough quantity for product with ID " + product.getProductId());
             }
             // create order item
             OrderItem orderItem = new OrderItem();
-            System.out.println(userResponse);
+            UserDTO user = (UserDTO) userResponse.getBody();
+            Long userId=userResponse.getBody().getId();
+            orderItem.setUserId(userId);
 
         }
 
