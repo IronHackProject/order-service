@@ -12,4 +12,5 @@ public interface ProductClient {
     @GetMapping("/api/product/find/{id}")
     ResponseEntity<ProductDTO> findById(@PathVariable("id") long id);
     ResponseEntity<?>subQuantity(@PathVariable("id") long id, @PathVariable("quantity") int quantity);
+    Boolean isProductAvailable(@PathVariable("id") long id, @PathVariable("quantity") int quantity);
 }

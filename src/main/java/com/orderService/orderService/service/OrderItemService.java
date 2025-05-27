@@ -41,7 +41,10 @@ public class OrderItemService {
                 throw new OrderItemException("Product with ID " + product.getProductId() +"does not exist.");
             }
             // check stock
-
+            Boolean isAvailable = productClient.isProductAvailable(product.getProductId(), product.getQuantity());
+            if (!isAvailable) {
+                throw new OrderItemException("Product with ID " + product.getProductId() + " is not available in the requested quantity.");
+            }
 
             // sub quantity of product
             ResponseEntity<?> subQuantityResponse = productClient.subQuantity(product.getProductId(), product.getQuantity());
