@@ -124,13 +124,25 @@ public class OrderItemService {
     }
 
 
-    public ResponseEntity<String> deleteOrderItem(Long id) {
-        Optional<OrderItem> orderItem = orderItemRespository.findById(id);
-        if (orderItem.isPresent()) {
-            orderItemRespository.delete(orderItem.get());
-            return ResponseEntity.ok("Order item deleted successfully");
-        } else {
-            throw new OrderItemException("Order item not found with id: " + id);
-        }
+    public ResponseEntity<?> deleteOrderItem(Long id) {
+        OrderItem orderItem = orderItemRespository.findById(id)
+                .orElseThrow(() -> new OrderItemException("Order item not found with id: " + id));
+
+        Order order = orderItem.getOrder();
+
+        // Eliminar el item de la base de datos
+        orderItemRespository.delete(orderItem);
+
+        // Actualizar el total de la orden
+        double updatedTotal = order.getOrderItems().stream()
+                .filter(item -> !item.getId().equals(id))
+                .mapToDouble(OrderItem::getTotalPrice)
+                .sum();
+
+        order.setTotalAmount(updatedTotal);
+        orderRepository.save(order);
+
+        return ResponseEntity.ok("Order item deleted successfully");
     }
+
 }
