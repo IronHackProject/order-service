@@ -26,10 +26,10 @@ public class OrderItemService {
     private final ProductClient productClient;
     private final OrderItemRespository orderItemRespository;
     private final UserClient userClient;
-    private final OrderRepository  orderRepository;
+    private final OrderRepository orderRepository;
 
     public OrderItemService(ProductClient productClient, OrderItemRespository orderItemRespository,
-                            UserClient userClient,OrderRepository orderRepository) {
+                            UserClient userClient, OrderRepository orderRepository) {
         this.productClient = productClient;
         this.orderItemRespository = orderItemRespository;
         this.userClient = userClient;
@@ -37,9 +37,7 @@ public class OrderItemService {
     }
 
     public ResponseEntity<?> saveOrderItem(Long orderId, OrderItemRequestDTO orderItem) {
-        // Buscar la orden asociada
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderItemException("Order not found"));
+
         // validate if exist customer by email
         var userResponse = userClient.findUserByEmail(orderItem.getCustomerEmail());
         if (!userResponse.getStatusCode().is2xxSuccessful() || userResponse.getBody() == null) {
@@ -50,6 +48,20 @@ public class OrderItemService {
         if (!productResponse.getStatusCode().is2xxSuccessful() || productResponse.getBody() == null) {
             throw new OrderItemException("Product with id " + orderItem.getProductId() + " does not exist.");
         }
+
+
+
+        // Buscar la orden asociada y sino la crea
+        Order order = orderRepository.findById(orderId).orElseGet(() -> {
+            Order newOrder = new Order();
+            newOrder.setUserId(userResponse.getBody().getId());
+            newOrder.setOrderDate(LocalDateTime.now());
+            newOrder.setOrderItems(new ArrayList<>());
+            newOrder.setTotalAmount(0.0);
+            return orderRepository.save(newOrder);
+        });
+
+
         // calcular la cantidad total
         double totalAmount = productResponse.getBody().getPrice() * orderItem.getQuantity();
         // guardar OrderItem
@@ -59,15 +71,19 @@ public class OrderItemService {
         orderItemToSave.setQuantity(orderItem.getQuantity());
         orderItemToSave.setTotalPrice(totalAmount);
         orderItemToSave.setOrder(order);
-        // guardar OrderItem
+
+        // agregar el  OrderItem a la orden
+        order.getOrderItems().add(orderItemToSave);
+        // Recalcular el totalAmount
+        double newTotal = order.getOrderItems().stream()
+                .mapToDouble(OrderItem::getTotalPrice)
+                .sum();
+        order.setTotalAmount(newTotal);
+
         orderItemRespository.save(orderItemToSave);
 
         return ResponseEntity.ok(order);
     }
-
-
-
-
 
 
     public ResponseEntity<OrderItem> getOrderItemById(Long id) {
@@ -77,7 +93,7 @@ public class OrderItemService {
     }
 
     public ResponseEntity<?> updateOrderItem(Long id, UpdateOrderItemRequestDTO dto) {
-        Optional<OrderItem> orderItem=orderItemRespository.findById(id);
+        Optional<OrderItem> orderItem = orderItemRespository.findById(id);
         if (orderItem.isPresent()) {
             orderItem.get().setProductId(dto.getProductId());
             orderItem.get().setQuantity(dto.getQuantity());
@@ -85,7 +101,7 @@ public class OrderItemService {
             return ResponseEntity.ok("Order item updated successfully");
         }
 
-            throw new OrderItemException("Order item not found with id: " + id);
+        throw new OrderItemException("Order item not found with id: " + id);
 
     }
 

@@ -18,8 +18,7 @@ import java.util.List;
 public class OrderItemRequestDTO {
     @NotBlank(message = "Customer email cannot be blank")
     private String customerEmail;
-    private Order order;
-    private long userId;
+    private Long orderId;
     private Long productId;
     private int quantity;
 }

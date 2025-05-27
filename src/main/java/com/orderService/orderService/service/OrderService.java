@@ -43,56 +43,65 @@ public class OrderService {
     }
 
     public ResponseEntity<?> createOrder(OrderRequestDTO dto) {
-        // validate if exist customer
+        // Validar usuario
         var userResponse = userClient.findUserByEmail(dto.getCustomerEmail());
         if (!userResponse.getStatusCode().is2xxSuccessful() || userResponse.getBody() == null) {
             throw new OrderItemException("User with email " + dto.getCustomerEmail() + " does not exist.");
         }
+
+        Long userId = userResponse.getBody().getId();
         List<OrderItem> orderItems = new ArrayList<>();
         double totalAmount = 0.0;
-        for (ProductRequest product : dto.getProducts()) {
-            // check if exit productId
-            ResponseEntity<ProductDTO> productResponse = productClient.findById(product.getProductId());
-            if (!productResponse.getStatusCode().is2xxSuccessful() || productResponse.getBody() == null) {
-                throw new OrderItemException("Product with ID " + product.getProductId() +"does not exist.");
-            }
-            // check stock
-            Boolean isAvailable = productClient.isProductAvailable(product.getProductId(), product.getQuantity());
-            if (!isAvailable) {
-                throw new OrderItemException("Product with ID " + product.getProductId() + " is not available in the requested quantity.");
-            }
 
-            // sub quantity of product
-            ResponseEntity<?> subQuantityResponse = productClient.subQuantity(product.getProductId(), product.getQuantity());
-            if (!subQuantityResponse.getStatusCode().is2xxSuccessful() || subQuantityResponse.getBody() == null) {
-                throw new OrderItemException("Not enough quantity for product with ID " + product.getProductId());
-            }
-
-            // create order item
-            OrderItem orderItem = new OrderItem();
-            orderItem.setProductId(product.getProductId());
-            orderItem.setUserId(userResponse.getBody().getId());
-            orderItem.setQuantity(product.getQuantity());
-            orderItem.setPrice(productResponse.getBody().getPrice() * product.getQuantity());
-            orderItems.add(orderItem);
-            // save orderItems
-            orderItemRespository.save(orderItem);
-            // calculate total amount
-            totalAmount += orderItem.getQuantity() * orderItem.getPrice();
-            orderItems.add(orderItem);
-        }
-
-        // create order
+        // Crear orden vacía
         Order order = new Order();
-        Long userId=userResponse.getBody().getId();
         order.setUserId(userId);
         order.setOrderDate(LocalDateTime.now());
         order.setOrderItems(orderItems);
-        order.setTotalAmount(totalAmount);
-        // save order item
+        order.setTotalAmount(0.0);
         Order savedOrder = orderRepository.save(order);
+
+        for (ProductRequest product : dto.getProducts()) {
+            // Validaciones y operaciones con el producto
+            ResponseEntity<ProductDTO> productResponse = productClient.findById(product.getProductId());
+            if (!productResponse.getStatusCode().is2xxSuccessful() || productResponse.getBody() == null) {
+                throw new OrderItemException("Product with ID " + product.getProductId() +" does not exist.");
+            }
+
+            Boolean isAvailable = productClient.isProductAvailable(product.getProductId(), product.getQuantity());
+            if (!isAvailable) {
+                throw new OrderItemException("Product with ID " + product.getProductId() + " is not available.");
+            }
+
+            ResponseEntity<?> subQuantityResponse = productClient.subQuantity(product.getProductId(), product.getQuantity());
+            if (!subQuantityResponse.getStatusCode().is2xxSuccessful()) {
+                throw new OrderItemException("Not enough quantity for product with ID " + product.getProductId());
+            }
+
+            // Crear y asociar el OrderItem
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(product.getProductId());
+            orderItem.setUserId(userId);
+            orderItem.setQuantity(product.getQuantity());
+            double price = productResponse.getBody().getPrice() * product.getQuantity();
+            orderItem.setTotalPrice(price);
+            orderItem.setOrder(savedOrder);
+
+            // Guardar el OrderItem
+            orderItemRespository.save(orderItem);
+            orderItems.add(orderItem);
+
+            totalAmount += price;
+        }
+
+        // Actualizar la orden con total y lista definitiva
+        savedOrder.setOrderItems(orderItems);
+        savedOrder.setTotalAmount(totalAmount);
+        orderRepository.save(savedOrder);
+
         return ResponseEntity.ok().body(savedOrder);
     }
+
 
 
 
