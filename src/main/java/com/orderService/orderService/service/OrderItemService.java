@@ -37,21 +37,27 @@ public class OrderItemService {
     }
 
     public ResponseEntity<?> saveOrderItem(Long orderId, OrderItemRequestDTO orderItem) {
+        // Buscar la orden asociada
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderItemException("Order not found"));
         // validate if exist customer by email
         var userResponse = userClient.findUserByEmail(orderItem.getCustomerEmail());
         if (!userResponse.getStatusCode().is2xxSuccessful() || userResponse.getBody() == null) {
             throw new OrderItemException("User with email " + orderItem.getCustomerEmail() + " does not exist.");
         }
-        // Buscar la orden asociada
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderItemException("Order not found"));
-
+        // validate if product exist
+        ResponseEntity<ProductDTO> productResponse = productClient.findById(orderItem.getProductId());
+        if (!productResponse.getStatusCode().is2xxSuccessful() || productResponse.getBody() == null) {
+            throw new OrderItemException("Product with id " + orderItem.getProductId() + " does not exist.");
+        }
+        // calcular la cantidad total
+        double totalAmount = productResponse.getBody().getPrice() * orderItem.getQuantity();
         // guardar OrderItem
         OrderItem orderItemToSave = new OrderItem();
         orderItemToSave.setUserId(userResponse.getBody().getId());
         orderItemToSave.setProductId(orderItem.getProductId());
         orderItemToSave.setQuantity(orderItem.getQuantity());
-        orderItemToSave.setPrice(orderItem.getPrice());
+        orderItemToSave.setTotalPrice(totalAmount);
         orderItemToSave.setOrder(order);
         // guardar OrderItem
         orderItemRespository.save(orderItemToSave);

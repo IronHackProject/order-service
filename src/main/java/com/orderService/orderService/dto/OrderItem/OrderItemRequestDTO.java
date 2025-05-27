@@ -22,7 +22,4 @@ public class OrderItemRequestDTO {
     private long userId;
     private Long productId;
     private int quantity;
-    private double price;
-
-
 }
