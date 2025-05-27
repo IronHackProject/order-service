@@ -23,7 +23,7 @@ public class OrderItemController {
         return orderItemService.saveOrderItem(orderId, orderItem);
     }
 
-    @GetMapping("/findorderitembyid/{id}")
+    @GetMapping("/findbyid/{id}")
     public ResponseEntity<OrderItem> getOrderItemById(@PathVariable Long id) {
         return orderItemService.getOrderItemById(id);
     }

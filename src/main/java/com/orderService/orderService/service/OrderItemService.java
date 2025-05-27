@@ -46,10 +46,16 @@ public class OrderItemService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderItemException("Order not found"));
 
-        // Asignar la orden al OrderItem
-        orderItem.setOrder(order);
+        // guardar OrderItem
+        OrderItem orderItemToSave = new OrderItem();
+        orderItemToSave.setUserId(userResponse.getBody().getId());
+        orderItemToSave.setProductId(orderItem.getProductId());
+        orderItemToSave.setQuantity(orderItem.getQuantity());
+        orderItemToSave.setPrice(orderItem.getPrice());
+        orderItemToSave.setOrder(order);
+        // guardar OrderItem
+        orderItemRespository.save(orderItemToSave);
 
-        // Guardar OrderItem
         return ResponseEntity.ok(order);
     }
 
