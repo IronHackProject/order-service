@@ -36,16 +36,21 @@ public class OrderItemService {
         this.orderRepository = orderRepository;
     }
 
-    public OrderItem saveOrderItem(Long orderId, OrderItem orderItem) {
+    public ResponseEntity<?> saveOrderItem(Long orderId, OrderItemRequestDTO orderItem) {
+        // validate if exist customer by email
+        var userResponse = userClient.findUserByEmail(orderItem.getCustomerEmail());
+        if (!userResponse.getStatusCode().is2xxSuccessful() || userResponse.getBody() == null) {
+            throw new OrderItemException("User with email " + orderItem.getCustomerEmail() + " does not exist.");
+        }
         // Buscar la orden asociada
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new OrderItemException("Order not found"));
 
         // Asignar la orden al OrderItem
         orderItem.setOrder(order);
 
         // Guardar OrderItem
-        return orderItemRespository.save(orderItem);
+        return ResponseEntity.ok(order);
     }
 
 

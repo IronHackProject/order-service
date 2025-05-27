@@ -1,6 +1,7 @@
 package com.orderService.orderService.controller;
 
 
+import com.orderService.orderService.dto.OrderItem.OrderItemRequestDTO;
 import com.orderService.orderService.dto.OrderItem.UpdateOrderItemRequestDTO;
 import com.orderService.orderService.model.OrderItem;
 import com.orderService.orderService.service.OrderItemService;
@@ -18,9 +19,8 @@ public class OrderItemController {
     }
 
     @PostMapping("/{orderId}/items")
-    public ResponseEntity<OrderItem> createOrderItem(@PathVariable Long orderId, @RequestBody OrderItem orderItem) {
-        OrderItem savedOrderItem = orderItemService.saveOrderItem(orderId, orderItem);
-        return ResponseEntity.ok(savedOrderItem);
+    public ResponseEntity<?> createOrderItem(@PathVariable Long orderId, @RequestBody OrderItemRequestDTO orderItem) {
+        return orderItemService.saveOrderItem(orderId, orderItem);
     }
 
     @GetMapping("/findorderitembyid/{id}")

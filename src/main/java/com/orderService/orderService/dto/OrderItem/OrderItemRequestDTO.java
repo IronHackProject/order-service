@@ -18,7 +18,6 @@ import java.util.List;
 public class OrderItemRequestDTO {
     @NotBlank(message = "Customer email cannot be blank")
     private String customerEmail;
-    @NotNull(message = "Orde")
     private Order order;
     private long userId;
     private Long productId;
@@ -27,12 +26,3 @@ public class OrderItemRequestDTO {
 
 
 }
-// Example JSON request body for creating an order item
-//{
-//        "customerEmail": "email@email.com",
-//        "products": [
-//        { "productId": 1, "quantity": 2 },
-//        { "productId": 5, "quantity": 1 },
-//        { "productId": 8, "quantity": 3 }
-//        ]
-//        }
