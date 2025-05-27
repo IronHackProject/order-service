@@ -2,7 +2,7 @@ package com.orderService.orderService.controller;
 
 import com.orderService.orderService.dto.Order.OrderRequestDTO;
 import com.orderService.orderService.dto.Order.UpdateOrderRequestDTO;
-import com.orderService.orderService.dto.OrderItem.OrderItemRequestDTO;
+
 import com.orderService.orderService.exception.customException.OrderException;
 import com.orderService.orderService.model.Order;
 import com.orderService.orderService.service.OrderService;

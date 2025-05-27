@@ -73,4 +73,13 @@ public class OrderItemService {
     }
 
 
+    public ResponseEntity<String> deleteOrderItem(Long id) {
+        Optional<OrderItem> orderItem = orderItemRespository.findById(id);
+        if (orderItem.isPresent()) {
+            orderItemRespository.delete(orderItem.get());
+            return ResponseEntity.ok("Order item deleted successfully");
+        } else {
+            throw new OrderItemException("Order item not found with id: " + id);
+        }
+    }
 }

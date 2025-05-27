@@ -1,6 +1,6 @@
 package com.orderService.orderService.controller;
 
-import com.orderService.orderService.dto.OrderItem.OrderItemRequestDTO;
+
 import com.orderService.orderService.dto.OrderItem.UpdateOrderItemRequestDTO;
 import com.orderService.orderService.model.OrderItem;
 import com.orderService.orderService.service.OrderItemService;
@@ -31,6 +31,11 @@ public class OrderItemController {
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateOrderItem(@PathVariable Long id, @RequestBody UpdateOrderItemRequestDTO dto) {
         return orderItemService.updateOrderItem(id, dto);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteOrderItem(@PathVariable Long id) {
+        return orderItemService.deleteOrderItem(id);
     }
 
 }
