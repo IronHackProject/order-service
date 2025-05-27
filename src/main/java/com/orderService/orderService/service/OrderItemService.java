@@ -2,22 +2,24 @@ package com.orderService.orderService.service;
 
 import com.orderService.orderService.client.ProductClient;
 import com.orderService.orderService.client.UserClient;
-import com.orderService.orderService.dto.OrderItemRequestDTO;
+import com.orderService.orderService.dto.OrderItem.OrderItemRequestDTO;
+import com.orderService.orderService.dto.OrderItem.UpdateOrderItemRequestDTO;
 import com.orderService.orderService.dto.Product.ProductDTO;
-import com.orderService.orderService.dto.ProductRequest;
+import com.orderService.orderService.dto.Product.ProductRequest;
 
 import com.orderService.orderService.exception.customException.OrderItemException;
 import com.orderService.orderService.model.Order;
 import com.orderService.orderService.model.OrderItem;
 import com.orderService.orderService.repository.OrderItemRespository;
 import com.orderService.orderService.repository.OrderRepository;
-import jakarta.persistence.JoinColumn;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderItemService {
@@ -94,5 +96,22 @@ public class OrderItemService {
     }
 
 
+    public ResponseEntity<OrderItem> getOrderItemById(Long id) {
+        return orderItemRespository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new OrderItemException("Order item not found with id: " + id));
+    }
 
+    public ResponseEntity<?> updateOrderItem(Long id, UpdateOrderItemRequestDTO dto) {
+        Optional<OrderItem> orderItem=orderItemRespository.findById(id);
+        if (orderItem.isPresent()) {
+            orderItem.get().setProductId(dto.getProductId());
+            orderItem.get().setQuantity(dto.getQuantity());
+            orderItemRespository.save(orderItem.get());
+            return ResponseEntity.ok("Order item updated successfully");
+        }
+
+            throw new OrderItemException("Order item not found with id: " + id);
+
+    }
 }

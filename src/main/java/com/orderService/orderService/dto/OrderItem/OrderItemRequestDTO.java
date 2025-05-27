@@ -1,5 +1,6 @@
-package com.orderService.orderService.dto;
+package com.orderService.orderService.dto.OrderItem;
 
+import com.orderService.orderService.dto.Product.ProductRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
