@@ -34,7 +34,7 @@ public class OrderController {
     public ResponseEntity<List<Order>> findAll() {
         List<Order>allOrders= orderService.findAll();
         if (allOrders.isEmpty()) {
-            throw new RuntimeException("No orders found");
+            throw new OrderException("No orders found");
         }
         return ResponseEntity.ok(allOrders);
     }
