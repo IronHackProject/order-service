@@ -36,7 +36,7 @@ public class OrderItemService {
         this.orderRepository = orderRepository;
     }
 
-    public ResponseEntity<?> saveOrderItem(Long orderId, OrderItemRequestDTO orderItem) {
+    public ResponseEntity<Order> saveOrderItem(Long orderId, OrderItemRequestDTO orderItem) {
 
         // validate if exist customer by email
         var userResponse = userClient.findUserByEmail(orderItem.getCustomerEmail());
@@ -92,7 +92,7 @@ public class OrderItemService {
                 .orElseThrow(() -> new OrderItemException("Order item not found with id: " + id));
     }
 
-    public ResponseEntity<?> updateOrderItem(Long id, UpdateOrderItemRequestDTO dto) {
+    public ResponseEntity<String> updateOrderItem(Long id, UpdateOrderItemRequestDTO dto) {
         OrderItem orderItem = orderItemRespository.findById(id)
                 .orElseThrow(() -> new OrderItemException("Order item not found with id: " + id));
 
@@ -124,7 +124,7 @@ public class OrderItemService {
     }
 
 
-    public ResponseEntity<?> deleteOrderItem(Long id) {
+    public ResponseEntity<String> deleteOrderItem(Long id) {
         OrderItem orderItem = orderItemRespository.findById(id)
                 .orElseThrow(() -> new OrderItemException("Order item not found with id: " + id));
 

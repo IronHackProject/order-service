@@ -76,14 +76,14 @@ public class OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (ProductRequest product : dto.getProducts()) {
-            // Descontar cantidad solo si ya se validó todo
+            // Descontar cantidad solo si ya se validó
             ResponseEntity<?> subQuantityResponse = productClient.subQuantity(product.getProductId(), product.getQuantity());
             if (!subQuantityResponse.getStatusCode().is2xxSuccessful()) {
                 throw new OrderItemException("Not enough quantity for product with ID " + product.getProductId());
             }
 
             var productResponse = productClient.findById(product.getProductId());
-            double price = productResponse.getBody().getPrice() * product.getQuantity();
+            double price = (productResponse.getBody().getPrice()) * product.getQuantity();
 
             OrderItem orderItem = new OrderItem();
             orderItem.setProductId(product.getProductId());
@@ -99,7 +99,7 @@ public class OrderService {
 
         savedOrder.setOrderItems(orderItems);
         savedOrder.setTotalAmount(totalAmount);
-        orderRepository.save(savedOrder); // solo una vez, si realmente necesitas actualizar el total
+        orderRepository.save(savedOrder);
 
         return ResponseEntity.ok().body(savedOrder);
     }
