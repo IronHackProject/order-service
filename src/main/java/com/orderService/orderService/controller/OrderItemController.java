@@ -5,11 +5,12 @@ import com.orderService.orderService.dto.OrderItem.OrderItemRequestDTO;
 import com.orderService.orderService.dto.OrderItem.UpdateOrderItemRequestDTO;
 import com.orderService.orderService.model.OrderItem;
 import com.orderService.orderService.service.OrderItemService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/orderItem")
+@RequestMapping("/api/order/item")
 public class OrderItemController {
 
     private final OrderItemService orderItemService;
@@ -19,7 +20,7 @@ public class OrderItemController {
     }
 
     @PostMapping("/{orderId}/items")
-    public ResponseEntity<?> createOrderItem(@PathVariable Long orderId, @RequestBody OrderItemRequestDTO orderItem) {
+    public ResponseEntity<?> createOrderItem(@PathVariable Long orderId, @RequestBody @Valid OrderItemRequestDTO orderItem) {
         return orderItemService.saveOrderItem(orderId, orderItem);
     }
 

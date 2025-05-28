@@ -1,0 +1,72 @@
+[
+  {
+    "customerEmail": "sandra.nunez@example.es",
+    "products": [
+      { "productId": 1, "quantity": 2 },
+      { "productId": 2, "quantity": 1 }
+    ]
+  },
+  {
+    "customerEmail": "diego.serrano@example.es",
+    "products": [
+      { "productId": 3, "quantity": 1 },
+      { "productId": 4, "quantity": 2 }
+    ]
+  },
+  {
+    "customerEmail": "abelardo.desotomayor@example.es",
+    "products": [
+      { "productId": 5, "quantity": 3 },
+      { "productId": 6, "quantity": 1 }
+    ]
+  },
+  {
+    "customerEmail": "lucia.perez@example.es",
+    "products": [
+      { "productId": 7, "quantity": 2 },
+      { "productId": 8, "quantity": 2 }
+    ]
+  },
+  {
+    "customerEmail": "maria.lopez@example.es",
+    "products": [
+      { "productId": 9, "quantity": 1 },
+      { "productId": 10, "quantity": 3 }
+    ]
+  },
+  {
+    "customerEmail": "javier.garcia@example.es",
+    "products": [
+      { "productId": 11, "quantity": 2 },
+      { "productId": 12, "quantity": 1 }
+    ]
+  },
+  {
+    "customerEmail": "elena.moreno@example.es",
+    "products": [
+      { "productId": 13, "quantity": 1 },
+      { "productId": 14, "quantity": 2 }
+    ]
+  },
+  {
+    "customerEmail": "miguel.ramirez@example.es",
+    "products": [
+      { "productId": 15, "quantity": 3 },
+      { "productId": 16, "quantity": 1 }
+    ]
+  },
+  {
+    "customerEmail": "sandra.nunez@example.es",
+    "products": [
+      { "productId": 17, "quantity": 2 },
+      { "productId": 18, "quantity": 1 }
+    ]
+  },
+  {
+    "customerEmail": "laura.jimenez@example.es",
+    "products": [
+      { "productId": 19, "quantity": 1 },
+      { "productId": 20, "quantity": 2 }
+    ]
+  }
+]

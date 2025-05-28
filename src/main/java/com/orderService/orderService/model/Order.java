@@ -1,5 +1,7 @@
 package com.orderService.orderService.model;
 
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +14,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,6 +23,7 @@ public class Order {
     LocalDateTime orderDate;
     private double totalAmount;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,orphanRemoval = true)
+    @JsonManagedReference
     List <OrderItem> orderItems;
 }
 // Example JSON request body for creating an order item

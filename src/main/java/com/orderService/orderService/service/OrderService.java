@@ -16,6 +16,7 @@ import com.orderService.orderService.repository.OrderItemRespository;
 import com.orderService.orderService.repository.OrderRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,7 +42,7 @@ public class OrderService {
         this.userClient = userClient;
         this.productClient = productClient;
     }
-
+    @Transactional
     public ResponseEntity<?> createOrder(OrderRequestDTO dto) {
         // Validar usuario
         var userResponse = userClient.findUserByEmail(dto.getCustomerEmail());
@@ -50,57 +51,59 @@ public class OrderService {
         }
 
         Long userId = userResponse.getBody().getId();
-        List<OrderItem> orderItems = new ArrayList<>();
         double totalAmount = 0.0;
 
-        // Crear orden vacía
-        Order order = new Order();
-        order.setUserId(userId);
-        order.setOrderDate(LocalDateTime.now());
-        order.setOrderItems(orderItems);
-        order.setTotalAmount(0.0);
-        Order savedOrder = orderRepository.save(order);
-
+        // Primero, validar que todos los productos existen y están disponibles
         for (ProductRequest product : dto.getProducts()) {
-            // Validaciones y operaciones con el producto
-            ResponseEntity<ProductDTO> productResponse = productClient.findById(product.getProductId());
+            var productResponse = productClient.findById(product.getProductId());
             if (!productResponse.getStatusCode().is2xxSuccessful() || productResponse.getBody() == null) {
-                throw new OrderItemException("Product with ID " + product.getProductId() +" does not exist.");
+                throw new OrderItemException("Product with ID " + product.getProductId() + " does not exist.");
             }
 
             Boolean isAvailable = productClient.isProductAvailable(product.getProductId(), product.getQuantity());
             if (!isAvailable) {
                 throw new OrderItemException("Product with ID " + product.getProductId() + " is not available.");
             }
+        }
 
+        // Crear orden vacía
+        Order order = new Order();
+        order.setUserId(userId);
+        order.setOrderDate(LocalDateTime.now());
+        order.setTotalAmount(0.0); // provisional
+        Order savedOrder = orderRepository.save(order);
+
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        for (ProductRequest product : dto.getProducts()) {
+            // Descontar cantidad solo si ya se validó todo
             ResponseEntity<?> subQuantityResponse = productClient.subQuantity(product.getProductId(), product.getQuantity());
             if (!subQuantityResponse.getStatusCode().is2xxSuccessful()) {
                 throw new OrderItemException("Not enough quantity for product with ID " + product.getProductId());
             }
 
-            // Crear y asociar el OrderItem
+            var productResponse = productClient.findById(product.getProductId());
+            double price = productResponse.getBody().getPrice() * product.getQuantity();
+
             OrderItem orderItem = new OrderItem();
             orderItem.setProductId(product.getProductId());
             orderItem.setUserId(userId);
             orderItem.setQuantity(product.getQuantity());
-            double price = productResponse.getBody().getPrice() * product.getQuantity();
             orderItem.setTotalPrice(price);
             orderItem.setOrder(savedOrder);
 
-            // Guardar el OrderItem
             orderItemRespository.save(orderItem);
             orderItems.add(orderItem);
-
             totalAmount += price;
         }
 
-        // Actualizar la orden con total y lista definitiva
         savedOrder.setOrderItems(orderItems);
         savedOrder.setTotalAmount(totalAmount);
-        orderRepository.save(savedOrder);
+        orderRepository.save(savedOrder); // solo una vez, si realmente necesitas actualizar el total
 
         return ResponseEntity.ok().body(savedOrder);
     }
+
 
 
 
